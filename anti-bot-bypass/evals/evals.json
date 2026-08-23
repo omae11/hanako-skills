@@ -1,0 +1,131 @@
+{
+  "skill_name": "anti-bot-bypass",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "basic-probe-diagnosis",
+      "prompt": "我想爬 https://huaban.com/boards/92623632 的图片，但 requests 一直返回 405，怎么办",
+      "expected_output": "应该先跑 probe 诊断反爬栈，再推荐 playwright + 页面内 fetch 方案",
+      "files": [],
+      "assertions": [
+        {
+          "name": "先用 probe 诊断",
+          "description": "应调用 scripts/probe.py 探测目标站，输出反爬栈指纹"
+        },
+        {
+          "name": "指出具体反爬栈",
+          "description": "应识别出是 F5 EO-Bot（指纹 EO-Bot-Js-Token）"
+        },
+        {
+          "name": "推荐 playwright + 页面内 fetch",
+          "description": "不应直接给爬虫脚本，应给方法论 + 决策树"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "generic-browser-crawler-template",
+      "prompt": "我想爬 https://example.com/api/items 这个分页 API，每页 20 条，需要登录 cookie，怎么写",
+      "expected_output": "应该基于 browser_crawler.py 模板修改，data_extractor 用页面内 fetch 翻页",
+      "files": [],
+      "assertions": [
+        {
+          "name": "基于模板",
+          "description": "应基于 scripts/browser_crawler.py 改，而不是从零写"
+        },
+        {
+          "name": "data_extractor 用页面内 fetch",
+          "description": "应强调在 page.evaluate 里用 fetch 调用 API，而不是从 playwright 外部 requests"
+        },
+        {
+          "name": "翻页逻辑",
+          "description": "应说明 max 游标翻页（或者 next-page-link 模式）"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "cloudflare-specific",
+      "prompt": "目标站是 https://example-cloudflare.com，访问后看到 'Just a moment...' 页面",
+      "expected_output": "应识别 Cloudflare，推荐 headful playwright + 慢节奏",
+      "files": [],
+      "assertions": [
+        {
+          "name": "识别 Cloudflare",
+          "description": "应提到 'Just a moment' 是 Cloudflare 标志"
+        },
+        {
+          "name": "推荐 playwright headful",
+          "description": "headless=False 是必要条件"
+        },
+        {
+          "name": "提到慢节奏",
+          "description": "应提到 sleep 1~3 秒避免行为分析标记"
+        },
+        {
+          "name": "查 reference",
+          "description": "应指向 references/anti-bot-stacks.md 的 Cloudflare 章节"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "eval_name": "debug-cant-find-data",
+      "prompt": "我用 playwright 启动浏览器，访问页面，标题对，但 pin 数一直是 0",
+      "expected_output": "应按 cookbook 调试 checklist 顺序排查：JS 挑战、API 端点、window 全局变量",
+      "files": [],
+      "assertions": [
+        {
+          "name": "检查 JS 挑战是否通过",
+          "description": "应提到看 URL 里的 ?tads 参数是否去掉"
+        },
+        {
+          "name": "检查 API 端点",
+          "description": "应用 page.on('response') 监听网络找真实端点"
+        },
+        {
+          "name": "检查 window 全局变量",
+          "description": "现代 SPA 数据可能在 window.app / __NEXT_DATA__ 等位置"
+        },
+        {
+          "name": "指向 cookbook",
+          "description": "应指向 references/playwright-cookbook.md 的调试 checklist"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "eval_name": "should-not-trigger-simple-case",
+      "prompt": "我想爬 https://jsonplaceholder.typicode.com/posts 这个 API",
+      "expected_output": "不应触发本 skill。这是公开 JSON API，直接 requests 就够",
+      "files": [],
+      "assertions": [
+        {
+          "name": "不应触发 skill",
+          "description": "公开 API 无反爬，应直接 requests + json()"
+        },
+        {
+          "name": "指出无反爬",
+          "description": "应明确说明这个站不需要本 skill"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "eval_name": "complex-captcha-out-of-scope",
+      "prompt": "目标站是 12306 购票网站，有滑块验证码 + 行为分析",
+      "expected_output": "应指出本 skill 只覆盖 JS 挑战类，12306 这种需要打码平台或专用方案",
+      "files": [],
+      "assertions": [
+        {
+          "name": "诚实说明能力边界",
+          "description": "不应给一个看似能跑但实际跑不通的方案"
+        },
+        {
+          "name": "指向 2Captcha 等",
+          "description": "应提到打码平台作为可行方案"
+        }
+      ]
+    }
+  ]
+}

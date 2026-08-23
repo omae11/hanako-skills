@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Skill 运行时产物（不要 push）
+cookie.txt
+*_edge_profile/
+_browser_profile/
+.venv/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo

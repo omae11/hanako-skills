@@ -1,0 +1,131 @@
+{
+  "skill_name": "huaban-image-crawler",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "single-board-download",
+      "prompt": "帮我把 https://huaban.com/boards/92623632 这个画板的所有图片批量下载到本地",
+      "expected_output": "下载脚本跑通，元数据写到 camo_dataset/_pins_meta.json，原图命名 huaban_{pin_id}.{ext}",
+      "files": [],
+      "assertions": [
+        {
+          "name": "触发 skill",
+          "description": "必须使用 huaban-image-crawler skill（而不是写新脚本）"
+        },
+        {
+          "name": "正确配置 BOARD_ID",
+          "description": "脚本顶部 BOARD_ID 应设为 92623632（或通过 --boards 传入）"
+        },
+        {
+          "name": "解释 EO-Bot 机制",
+          "description": "应提到为什么不能直接用 requests、必须用 playwright"
+        },
+        {
+          "name": "指引 cookie 获取",
+          "description": "应清晰说明 cookie.txt 怎么准备（浏览器登录 → F12 → 复制）"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "multi-board-download",
+      "prompt": "我想做迷彩数据集，帮我从花瓣网这几个画板批量下载图片：92623632、98765432、12345678。先下载到一个目录里看看效果",
+      "expected_output": "使用 --boards-file 或 --boards 多画板模式，输出到 dataset_<id>/ 各目录",
+      "files": [],
+      "assertions": [
+        {
+          "name": "触发 skill",
+          "description": "必须使用 huaban-image-crawler skill"
+        },
+        {
+          "name": "使用多画板 CLI",
+          "description": "应使用 --boards 或 --boards-file，而不是改脚本顶部 BOARD_ID"
+        },
+        {
+          "name": "输出到各自目录",
+          "description": "应说明多画板输出到 dataset_<board_id>/ 各目录，互不干扰"
+        },
+        {
+          "name": "建议后续分类",
+          "description": "COD 数据集应该按类别分开（丛林/沙漠/城市迷彩），应给出建议"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "single-image-should-not-trigger",
+      "prompt": "花瓣网里这张图 https://huaban.com/pins/7246059566 帮我下载一下",
+      "expected_output": "不应触发本 skill。应该直接用 curl 或 PIL 下载原图 URL",
+      "files": [],
+      "assertions": [
+        {
+          "name": "不应触发 skill",
+          "description": "单张图片需求不应走批量下载 skill，应直接拿 hbimg.huabanimg.com/{key} 下载"
+        },
+        {
+          "name": "更轻量方案",
+          "description": "应提到直接 curl 或 playwright 单 page 下载"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "eval_name": "wrong-site-should-not-trigger",
+      "prompt": "帮我从 Pinterest 批量下载一个画板的所有图片",
+      "expected_output": "不应触发本 skill。Pinterest 不是花瓣网，反爬机制不同",
+      "files": [],
+      "assertions": [
+        {
+          "name": "不应触发 skill",
+          "description": "Pinterest 不在本 skill 适用范围，应明确拒绝并提示"
+        },
+        {
+          "name": "指出机制差异",
+          "description": "应说明 Pinterest 反爬机制不同（不是 EO-Bot），需要别的方案"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "eval_name": "format-conversion-after-download",
+      "prompt": "我从花瓣下载的图里有 webp 和 heif 的，转成 png 或者 jpg 统一格式",
+      "expected_output": "使用 scripts/convert_to_png.py，转换后删除原 webp/heif，更新元数据",
+      "files": ["camo_dataset/_pins_meta.json"],
+      "assertions": [
+        {
+          "name": "触发 skill",
+          "description": "应识别这是下载后续的格式转换需求，使用 convert_to_png.py"
+        },
+        {
+          "name": "提供两种选项",
+          "description": "应提供 png（无损）和 jpg（高质量压缩）两种选项让用户选"
+        },
+        {
+          "name": "同步更新元数据",
+          "description": "转换后应同步更新 _pins_meta.json 的 file.type 字段"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "eval_name": "debug-eo-bot-failure",
+      "prompt": "我用你的脚本跑花瓣网，画板加载出来但 pin 数一直是 0，怎么办",
+      "expected_output": "排查 EO-Bot 挑战是否真的通过、cookie 是否过期、API 端点是否变了",
+      "files": [],
+      "assertions": [
+        {
+          "name": "触发 skill",
+          "description": "应使用本 skill 的踩坑知识回答"
+        },
+        {
+          "name": "指向具体坑",
+          "description": "应引用踩过的坑（cookie 过期 / pageProps 是空 / API 端点改了）"
+        },
+        {
+          "name": "给出可执行排查步骤",
+          "description": "应给出可立即执行的命令（看 cookie 时间戳、看 API 响应）"
+        }
+      ]
+    }
+  ]
+}
