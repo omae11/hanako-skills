@@ -77,6 +77,62 @@ hanako skill install https://github.com/omae11/hanako-skills
 
 两个 skill 都在持续迭代中。每次新踩一个坑，会同步加到 SKILL.md 的"踩过的坑"清单 + bump 版本号。
 
+## 在其他 harness 里使用
+
+两个 skill 基于 [Agent Skills 开放标准](https://agentskills.io)，SKILL.md 正文 + scripts/ + references/ 跨 harness 通用，只需放到对应工具的 skills 目录。
+
+### Claude Code
+
+```powershell
+# 一次性安装
+git clone https://github.com/omae11/hanako-skills.git _tmp
+Copy-Item _tmp\huaban-image-crawler $env:USERPROFILE\.claude\skills\ -Recurse
+Copy-Item _tmp\anti-bot-bypass      $env:USERPROFILE\.claude\skills\ -Recurse
+Remove-Item _tmp -Recurse
+```
+
+或者用软链接，改一个地方两边自动同步（推荐 HanaAgent + Claude Code 并存的场景）：
+
+```powershell
+# 以管理员权限运行，或用 New-Item -Type Junction
+$src = "$env:USERPROFILE\.hanako\skills"
+cmd /c mklink /J "$env:USERPROFILE\.claude\skills\huaban-image-crawler" "$src\huaban-image-crawler"
+cmd /c mklink /J "$env:USERPROFILE\.claude\skills\anti-bot-bypass"      "$src\anti-bot-bypass"
+```
+
+### Codex (OpenAI CLI)
+
+在 `~/.codex/config.toml` 里注册：
+
+```toml
+[[skills]]
+path = "/path/to/hanako-skills/huaban-image-crawler"
+
+[[skills]]
+path = "/path/to/hanako-skills/anti-bot-bypass"
+```
+
+或者在项目根的 `AGENTS.md` 里用 `` 引用。
+
+### Cursor
+
+```powershell
+Copy-Item _tmp\huaban-image-crawler $env:USERPROFILE\.cursor\skills\ -Recurse
+Copy-Item _tmp\anti-bot-bypass      $env:USERPROFILE\.cursor\skills\ -Recurse
+```
+
+### 兼容性说明
+
+| 项 | 跨 harness 表现 |
+|---|---|
+| SKILL.md 正文 | ✅ 通用 |
+| scripts/ 里的 Python | ✅ 任何 Python 环境都能跑 |
+| references/ 文档 | ✅ 通用 |
+| description 触发词 | ✅ 通用（各 harness 都用这个判断加载时机）|
+| frontmatter `allowed-tools` | ⚠️ HanaAgent 专有，其他 harness 忽略 |
+| frontmatter `compatibility` | ✅ Agent Skills 标准，但各 harness 不主动校验 |
+| 路径 | ⚠️ 路径不同（见各工具安装命令）|
+
 ## License
 
 MIT
