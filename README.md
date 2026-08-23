@@ -17,7 +17,7 @@ These skills are designed to be dropped into `~/.hanako/skills/` and discovered 
 - webp/heif → png 自动转换
 - PWA Service Worker 缓存清理
 
-适用：用户提到"花瓣网"、"迷彩数据集"、"画板 ID"、"92623632" 等场景。
+
 
 ### [anti-bot-bypass](./anti-bot-bypass/)
 
