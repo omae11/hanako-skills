@@ -1,5 +1,9 @@
 # hanako-skills
 
+<p align="center">
+  <img src="./assets/cover.png" alt="Hanako Skills" width="800">
+</p>
+
 Custom skills for [HanaAgent](https://github.com/liliMozi/openhanako), the personal AI assistant platform.
 
 These skills are designed to be dropped into `~/.hanako/skills/` and discovered automatically.
