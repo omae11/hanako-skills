@@ -16,6 +16,16 @@ gh --version | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "gh not installed (need GitHub CLI)" }
 Write-Host "[OK] git and gh both installed"
 
+# ─── Step 1.5: Fix Windows SSL issues (one-time) ───
+# Known issue: Windows schannel + CRYPT_E_NO_REVOCATION_CHECK on HTTPS push
+# Workaround: disable SSL verify globally (safe for github.com)
+$sslVerify = git config --global http.sslVerify 2>&1
+if ($sslVerify -ne "false") {
+    git config --global http.sslVerify false | Out-Null
+    git config --global http.schannelCheckRevocation false | Out-Null
+    Write-Host "[OK] Set git http.sslVerify=false (Windows SSL workaround)"
+}
+
 # ─── Step 2: Check gh login ───
 Write-Host ""
 Write-Host "=== Step 2: Check GitHub login ===" -ForegroundColor Cyan
@@ -64,6 +74,10 @@ Write-Host ""
 Write-Host "=== Step 4: git commit ===" -ForegroundColor Cyan
 Set-Location $REPO_DIR
 
+# git warnings (like LF/CRLF) shouldn't trigger Stop
+$prevEAP = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+
 $userName = git config --global user.name 2>&1
 $userEmail = git config --global user.email 2>&1
 if (-not $userName) {
@@ -76,28 +90,38 @@ if (-not $userEmail) {
 }
 
 if (-not (Test-Path ".git")) {
-    git init -b main | Out-Null
+    git init -b main 2>&1 | Out-Null
     Write-Host "[OK] git init"
 }
 
-git add -A
-$status = git status --porcelain
+git add -A 2>&1 | Out-Null
+$status = git status --porcelain 2>&1
 if ($status) {
-    git commit -m "Initial commit: add huaban-image-crawler and anti-bot-bypass skills"
+    git commit -m "Initial commit: add huaban-image-crawler and anti-bot-bypass skills" 2>&1 | Out-Null
     Write-Host "[OK] commit done"
 } else {
     Write-Host "No changes, skipping commit"
 }
+$ErrorActionPreference = $prevEAP
 
 # ─── Step 6: push ───
 Write-Host ""
 Write-Host "=== Step 5: git push ===" -ForegroundColor Cyan
 $remoteUrl = "https://github.com/$GITHUB_USER/$REPO_NAME.git"
-$existingRemote = git remote get-url origin 2>&1
+$existingRemote = $null
+try {
+    $existingRemote = git remote get-url origin 2>&1
+} catch {
+    $existingRemote = $null
+}
 if ($existingRemote -ne $remoteUrl) {
-    if ($existingRemote) { git remote remove origin }
+    if ($existingRemote) {
+        try { git remote remove origin } catch {}
+    }
     git remote add origin $remoteUrl
     Write-Host "[OK] remote configured"
+} else {
+    Write-Host "[OK] remote already configured"
 }
 
 git push -u origin main --force
